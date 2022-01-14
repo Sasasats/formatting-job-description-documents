@@ -132,16 +132,19 @@ public class CreateDocument {
             XWPFParagraph new_par = document.insertNewParagraph(cursor);
             XWPFRun run = new_par.createRun();
 
+            new_par.setAlignment(ParagraphAlignment.BOTH);
+            new_par.setSpacingAfter(0);
+            new_par.setSpacingBetween(1);
+            new_par.setIndentationFirstLine(851);
+
             if (!line.isEmpty()) {
                 line = line.substring(getFirstLetterIndex(line) - 1);
 
                 new_par.setNumID(numID);
-                new_par.setAlignment(ParagraphAlignment.BOTH);
                 run.setText(line);
                 run.setFontSize(14);
                 run.setFontFamily("Times New Roman");
             } else {
-                new_par.createRun().addTab();
                 new_par.createRun().setText(line);
             }
             counter++;
