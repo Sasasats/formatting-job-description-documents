@@ -1,4 +1,4 @@
-package enums;
+package utils.enums;
 
 import lombok.Getter;
 
@@ -31,8 +31,7 @@ public enum RegexPatterns {
     @Getter
     private final String value;
 
-    RegexPatterns(String value){
+    RegexPatterns(String value) {
         this.value = value;
     }
-
 }
