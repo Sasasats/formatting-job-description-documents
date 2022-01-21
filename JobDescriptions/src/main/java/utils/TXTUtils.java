@@ -106,6 +106,17 @@ public class TXTUtils {
         return firstLetter;
     }
 
+    public static Integer getFirstLetterIndex(String textLine) {
+        int counter = 0;
+        for (char character : textLine.toCharArray()) {
+            counter++;
+            if (character >= 'А' && character <= 'я') {
+                break;
+            }
+        }
+        return counter;
+    }
+
     private static String removeCharAt(String s, int pos) {
         return s.substring(0, pos) + s.substring(pos + 1);
     }
