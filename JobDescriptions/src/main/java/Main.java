@@ -1,8 +1,5 @@
-import aquality.selenium.core.utilities.ISettingsFile;
-import aquality.selenium.core.utilities.JsonSettingsFile;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.apache.xmlbeans.XmlCursor;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
@@ -11,7 +8,6 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 import utils.TXTUtils;
 import utils.enums.DocNames;
 import utils.enums.Folders;
-import utils.enums.SettingsValues;
 import com.aspose.words.Document;
 
 import java.io.*;
@@ -19,13 +15,15 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Main {
-    private static final ISettingsFile settingsFile = new JsonSettingsFile("settings.json");
+    //Названия для статичных файлов, которые не будут меняться по ходу выполнения программы
+    private static final String TEMPLATE_FILE = Folders.FOLDER_FOR_TEMPLATES_FILES.getValue() +
+            DocNames.TEMPLATE_WORD_DOC_NAME.getValue();
+    private static final String COPIED_TEMPLATE_FILE = Folders.FOLDER_FOR_TEMPLATES_FILES.getValue() +
+            DocNames.COPIED_TEMPLATE_WORD_DOC_NAME.getValue();
 
     public static void main(String[] args) {
         List<File> originalFiles = null;
@@ -40,42 +38,39 @@ public class Main {
 
         for (File file : originalFiles) {
             System.out.println(file.getName());
-            if (file.getName().equals("desktop.ini"))
-                break;
 
-            String textFile = file.getName().substring(0, file.getName().length() - 5) + ".txt";
+            //Названия файлов с относительным путем для доступа к ним
+            String ORIGINAL_DOCX_FILE = Folders.FOLDER_FOR_ORIGINAL_FILES.getValue() + file.getName();
+            String FORMATTED_DOCX_FILE = Folders.FOLDER_FOR_FORMATTED_FILES.getValue() + file.getName();
+            String CONVERTED_TEXT_FILE = Folders.FOLDER_FOR_CONVERTED_TEXT_FILES.getValue() +
+                    file.getName().substring(0, file.getName().length() - 5) + ".txt";
+            String FORMATTED_TEXT_FILE = Folders.FOLDER_FOR_FORMATTED_TEXT_FILES.getValue() +
+                    file.getName().substring(0, file.getName().length() - 5) + ".txt";
 
             //Конвертирование .docx в .txt
             try {
-                Document doc = new Document(Folders.FOLDER_FOR_ORIGINAL_FILES.getValue() + file.getName());
-
-                doc.save(Folders.FOLDER_FOR_CONVERTED_TEXT_FILES.getValue() + textFile);
+                Document doc = new Document(ORIGINAL_DOCX_FILE);
+                doc.save(CONVERTED_TEXT_FILE);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            TXTUtils.readFile(Folders.FOLDER_FOR_CONVERTED_TEXT_FILES.getValue() + textFile,
-                    Folders.FOLDER_FOR_FORMATTED_TEXT_FILES.getValue() + "formatted_" + textFile);
+            //Форматирование текстового файла
+            TXTUtils.readFile(CONVERTED_TEXT_FILE, FORMATTED_TEXT_FILE);
 
             //Копирование шаблонного файла
             try {
-                Files.copy(Path.of(settingsFile.getValue(SettingsValues.FOLDER.getValue()) +
-                                DocNames.TEMPLATE_WORD_DOC_NAME.getValue()),
-                        Path.of(settingsFile.getValue(SettingsValues.FOLDER.getValue()) +
-                                DocNames.COPIED_TEMPLATE_WORD_DOC_NAME.getValue()));
+                Files.copy(Path.of(TEMPLATE_FILE), Path.of(COPIED_TEMPLATE_FILE));
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             try {
                 //Открытие скопированного файла
-                XWPFDocument document = new XWPFDocument(OPCPackage.open(
-                        settingsFile.getValue(SettingsValues.FOLDER.getValue()) +
-                                DocNames.COPIED_TEMPLATE_WORD_DOC_NAME.getValue()));
+                XWPFDocument document = new XWPFDocument(OPCPackage.open(COPIED_TEMPLATE_FILE));
 
                 //Получение списка текста из .txt файла
-                List<String> text = getTextFromFileTxt(Folders.FOLDER_FOR_FORMATTED_TEXT_FILES.getValue() +
-                        "formatted_" + textFile);
+                List<String> text = TXTUtils.getTextFromFileTxt(FORMATTED_TEXT_FILE);
 
                 //Получение номера строки для вставки текста
                 int counter = 0;
@@ -97,18 +92,16 @@ public class Main {
                 }
 
                 //Вставка текста
-                addNumList(document, text, counter, 0, "%1.", 1);
+                addNumList(document, text, counter, 1, "%1.1", 1);
 
                 //Создание выходного файла
-                FileOutputStream out = new FileOutputStream(new File(
-                        Folders.FOLDER_FOR_FORMATTED_FILES.getValue() + file.getName()));
+                FileOutputStream out = new FileOutputStream(FORMATTED_DOCX_FILE);
 
                 document.write(out);
                 document.close();
 
                 //Удаление скопированного файла
-                deleteFile(settingsFile.getValue(SettingsValues.FOLDER.getValue()) +
-                        DocNames.COPIED_TEMPLATE_WORD_DOC_NAME.getValue());
+                deleteFile(COPIED_TEMPLATE_FILE);
             } catch (IOException |
                     InvalidFormatException e) {
                 e.printStackTrace();
@@ -116,8 +109,13 @@ public class Main {
         }
     }
 
+
     public static void deleteFile(String fileName) {
         new File(fileName).delete();
+    }
+
+    public static void addText() {
+
     }
 
     public static void addNumList(XWPFDocument document, List<String> text, int counter, int absNum, String lvlText, int startNum) {
@@ -144,39 +142,17 @@ public class Main {
             new_par.setSpacingBetween(1);
             new_par.setIndentationFirstLine(851);
 
-            System.out.println(line.indexOf('\u001F') + "\t" + line);
-
-
-            while (line.indexOf('\u001F') != -1){
-                StringBuilder sb = new StringBuilder(line);
-                sb.delete(line.indexOf('\u001F'), line.indexOf('\u001F') + 1);
-                line = sb.toString();
-            }
-
             if (!line.isEmpty()) {
 
                 line = line.substring(getFirstLetterIndex(line) - 1);
 
                 new_par.setNumID(numID);
-                run.setText(line);
-                run.setFontSize(14);
-                run.setFontFamily("Times New Roman");
-            } else {
-                new_par.createRun().setText(line);
             }
+            run.setText(line);
+            run.setFontSize(14);
+            run.setFontFamily("Times New Roman");
             counter++;
         }
-    }
-
-    private static List<String> getTextFromFileTxt(String fileName) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new File(fileName));
-        List<String> text = new ArrayList<>();
-
-        while (scanner.hasNextLine()) {
-            text.add(scanner.nextLine());
-        }
-
-        return text;
     }
 
     private static Integer getFirstLetterIndex(String textLine) {

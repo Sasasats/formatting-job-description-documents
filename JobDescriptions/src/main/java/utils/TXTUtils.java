@@ -3,9 +3,7 @@ package utils;
 import utils.enums.RegexPatterns;
 import utils.enums.Separators;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -25,7 +23,14 @@ public class TXTUtils {
             List<String> text = new ArrayList<>();
             while (scanner.hasNextLine()) {
                 textLine = scanner.nextLine();
-                text.add(textLine);
+
+                if(textLine.trim().length() != 0){
+                    //Убрать некорректные символы
+                    if (textLine.indexOf('\u001F') != -1) {
+                        textLine = textLine.replaceAll("\u001F", "");
+                    }
+                    text.add(textLine);
+                }
             }
 
             List<String> formattedText = new ArrayList<>();
@@ -35,7 +40,7 @@ public class TXTUtils {
             }
 
             List<String> neededFormattedText = getNeededText(formattedText);
-            for(String line : neededFormattedText){
+            for (String line : neededFormattedText) {
                 fileWriter.write(line + "\n");
             }
 
@@ -49,16 +54,16 @@ public class TXTUtils {
     private static List<String> getNeededText(List<String> formattedText) {
         //Получение начального индекса для отбора списка текста должностных инструкций
         int startIndex = 0;
-        for(; startIndex < formattedText.size() - 1; startIndex++){
-            if(formattedText.get(startIndex).contains("1. ")){
+        for (; startIndex < formattedText.size() - 1; startIndex++) {
+            if (formattedText.get(startIndex).contains("1. ")) {
                 break;
             }
         }
 
         //Получение конечного индекса для отбора списка текста должностных инструкций
         int endIndex = formattedText.size() - 1;
-        for(; endIndex > 0; endIndex--){
-            if(formattedText.get(endIndex).contains("5.")){
+        for (; endIndex > 0; endIndex--) {
+            if (formattedText.get(endIndex).contains("5.")) {
                 endIndex++;
                 break;
             }
@@ -152,7 +157,7 @@ public class TXTUtils {
     private static String formatNumbers(String textLine, String nextTextLine) {
         //Форматирование нумерации
         if (textLine.length() > 2) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 3);
 
             Pattern pattern = Pattern.compile(RegexPatterns.CORRECT_LIST_LVL_1.getValue());
@@ -171,7 +176,7 @@ public class TXTUtils {
                 textLine = stringBuffer.toString();
                 textLine = removeLastPunctuationMark(textLine);
                 if (!nextTextLine.isEmpty()) {
-                    textLine = textLine + "\n";
+                    textLine = "\n" + textLine + "\n";
                 }
             }
 
@@ -180,7 +185,7 @@ public class TXTUtils {
                 textLine = stringBuffer.toString();
                 textLine = removeLastPunctuationMark(textLine);
                 if (!nextTextLine.isEmpty()) {
-                    textLine = textLine + "\n";
+                    textLine = "\n" + textLine + "\n";
                 }
             }
 
@@ -189,7 +194,7 @@ public class TXTUtils {
                 textLine = stringBuffer.toString();
                 textLine = removeLastPunctuationMark(textLine);
                 if (!nextTextLine.isEmpty()) {
-                    textLine = textLine + "\n";
+                    textLine = "\n" + textLine + "\n";
                 }
             }
 
@@ -198,13 +203,13 @@ public class TXTUtils {
                 textLine = stringBuffer.toString();
                 textLine = removeLastPunctuationMark(textLine);
                 if (!nextTextLine.isEmpty()) {
-                    textLine = textLine + "\n";
+                    textLine = "\n" + textLine + "\n";
                 }
             }
         }
 
         if (textLine.length() > 4) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 5);
 
             Pattern pattern1 = Pattern.compile(RegexPatterns.LIST_LVL_21.getValue());
@@ -233,7 +238,7 @@ public class TXTUtils {
         }
 
         if (textLine.length() > 5) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 6);
 
             Pattern pattern1 = Pattern.compile(RegexPatterns.LIST_LVL_211.getValue());
@@ -262,7 +267,7 @@ public class TXTUtils {
         }
 
         if (textLine.length() > 6) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 7);
 
             Pattern pattern1 = Pattern.compile(RegexPatterns.LIST_LVL_31.getValue());
@@ -291,7 +296,7 @@ public class TXTUtils {
         }
 
         if (textLine.length() > 6) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 8);
 
             Pattern pattern1 = Pattern.compile(RegexPatterns.LIST_LVL_311.getValue());
@@ -344,7 +349,7 @@ public class TXTUtils {
         }
 
         if (textLine.length() > 8) {
-            StringBuffer stringBuffer = new StringBuffer(textLine);
+            StringBuilder stringBuffer = new StringBuilder(textLine);
             String substring = textLine.substring(0, 9);
 
             Pattern pattern1 = Pattern.compile(RegexPatterns.LIST_LVL_313.getValue());
@@ -379,5 +384,21 @@ public class TXTUtils {
             textLine = textLine.substring(0, textLine.length() - 1);
         }
         return textLine;
+    }
+
+    public static List<String> getTextFromFileTxt(String fileName) {
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new File(fileName));
+            List<String> text = new ArrayList<>();
+
+            while (scanner.hasNextLine()) {
+                text.add(scanner.nextLine());
+            }
+            return text;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
