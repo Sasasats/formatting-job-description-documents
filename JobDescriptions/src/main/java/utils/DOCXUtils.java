@@ -35,9 +35,7 @@ public class DOCXUtils {
             new_par.setIndentationFirstLine(851);
 
             if (!line.isEmpty()) {
-
                 line = line.substring(TXTUtils.getFirstLetterIndex(line) - 1);
-
                 new_par.setNumID(numID);
             }
             run.setText(line);

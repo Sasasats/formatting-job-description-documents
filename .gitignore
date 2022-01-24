@@ -1,5 +1,9 @@
 # Build results
 target
+ConvertedTextFiles/
+FormattedFiles/
+FormattedTextFiles/
+OriginalFiles/
 
 # Log file
 *.log

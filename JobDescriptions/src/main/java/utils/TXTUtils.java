@@ -24,7 +24,7 @@ public class TXTUtils {
             while (scanner.hasNextLine()) {
                 textLine = scanner.nextLine();
 
-                if(textLine.trim().length() != 0){
+                if (textLine.trim().length() != 0) {
                     //Убрать некорректные символы
                     if (textLine.indexOf('\u001F') != -1) {
                         textLine = textLine.replaceAll("\u001F", "");
@@ -75,6 +75,7 @@ public class TXTUtils {
     private static String formatText(String textLine, String nextTextLine) {
         //Удаление пробелов в начале и конце строки
         textLine = textLine.trim();
+        //Замена знаков табуляции на пробелы
         textLine = textLine.replaceAll("\t", " ");
 
         //Удаление двойных пробелов
@@ -98,7 +99,7 @@ public class TXTUtils {
     private static char getFirstLetter(String textLine) {
         char firstLetter = 0;
         for (char character : textLine.toCharArray()) {
-            if ((character >= 'а' && character <= 'я') || (character >= 'А' && character <= 'Я')) {
+            if (isRussianLetter(character)) {
                 firstLetter = character;
                 break;
             }
@@ -110,7 +111,7 @@ public class TXTUtils {
         int counter = 0;
         for (char character : textLine.toCharArray()) {
             counter++;
-            if (character >= 'А' && character <= 'я') {
+            if (isRussianLetter(character)) {
                 break;
             }
         }
@@ -121,49 +122,72 @@ public class TXTUtils {
         return s.substring(0, pos) + s.substring(pos + 1);
     }
 
-    private static String setPunctuationMarks(char firstLetter1, char firstLetter2, String textLine, String nextTextLine) {
+    private static String setPunctuationMarks(char firstLetterTextLine, char firstLetterNextTextLine, String textLine, String nextTextLine) {
         //Расстановка ";" в подсписках
-        if ((firstLetter1 >= 'а' && firstLetter1 <= 'я') && (firstLetter2 >= 'a' && firstLetter2 <= 'я') &&
-                (textLine.endsWith(".") || textLine.endsWith(":") || textLine.endsWith(","))) {
-            textLine = textLine.substring(0, textLine.length() - 1) + ";";
-        }
-        if ((firstLetter1 >= 'а' && firstLetter1 <= 'я') &&
-                (!textLine.endsWith(";") && !textLine.endsWith(".") && !textLine.endsWith(","))) {
-            textLine = textLine + ";";
+        if (isLowercaseLetter(firstLetterTextLine) && isLowercaseLetter(firstLetterNextTextLine)) {
+            if (isTextLineEndsWithPunctuationMark(textLine)) {
+                replaceLastCharacter(textLine, ";");
+            } else {
+                textLine = textLine + ";";
+            }
         }
 
         //Расстановка "." в подсписках
-        if ((firstLetter1 >= 'а' && firstLetter1 <= 'я') && (firstLetter2 >= 'А' && firstLetter2 <= 'Я') &&
-                (textLine.endsWith(",") || textLine.endsWith(":") || (textLine.endsWith(".")
-                        || textLine.endsWith(";")))) {
-            textLine = textLine.substring(0, textLine.length() - 1) + ".";
+        if (isLowercaseLetter(firstLetterTextLine) && isUppercaseLetter(firstLetterNextTextLine)) {
+            if (isTextLineEndsWithPunctuationMark(textLine)) {
+                replaceLastCharacter(textLine, ".");
+            } else {
+                textLine = textLine + ".";
+            }
         }
 
         //Расстановка "." в конце строк
-        if ((firstLetter1 >= 'А' && firstLetter1 <= 'Я') && (firstLetter2 >= 'А' && firstLetter2 <= 'Я') &&
-                (textLine.endsWith(",") || textLine.endsWith(":"))) {
-            textLine = textLine.substring(0, textLine.length() - 1) + ".";
+        if (isUppercaseLetter(firstLetterTextLine) && isUppercaseLetter(firstLetterNextTextLine)) {
+            if (isTextLineEndsWithPunctuationMark(textLine)) {
+                replaceLastCharacter(textLine, ".");
+            } else {
+                textLine = textLine + ".";
+            }
         }
-        if ((firstLetter1 >= 'А' && firstLetter1 <= 'я') &&
-                (!textLine.endsWith(",") && !textLine.endsWith(":") && !textLine.endsWith(";") && !textLine.endsWith(".")) &&
-                nextTextLine.isEmpty()) {
-            textLine = textLine + ".";
-        }
-        if ((firstLetter1 >= 'А' && firstLetter1 <= 'я') &&
-                (textLine.endsWith(",") || textLine.endsWith(":") || textLine.endsWith(";") || textLine.endsWith(".")) &&
-                nextTextLine.isEmpty()) {
-            textLine = textLine.substring(0, textLine.length() - 1) + ".";
+        if (isRussianLetter(firstLetterTextLine) && nextTextLine.isEmpty()) {
+            if (isTextLineEndsWithPunctuationMark(textLine)) {
+                replaceLastCharacter(textLine, ".");
+            } else {
+                textLine = textLine + ".";
+            }
         }
 
         //Расстановка ":" перед подсписками
-        if ((firstLetter1 >= 'А' && firstLetter1 <= 'Я') && (firstLetter2 >= 'а' && firstLetter2 <= 'я') &&
-                (textLine.endsWith(",") || textLine.endsWith(".") || textLine.endsWith(";"))) {
-            textLine = textLine.substring(0, textLine.length() - 1) + ":";
+        if (isUppercaseLetter(firstLetterTextLine) && isLowercaseLetter(firstLetterNextTextLine)) {
+            if (isTextLineEndsWithPunctuationMark(textLine)) {
+                textLine = replaceLastCharacter(textLine, ":");
+            } else {
+                textLine = textLine + ":";
+            }
         }
 
         return textLine;
     }
 
+    public static boolean isTextLineEndsWithPunctuationMark(String textLine) {
+        return textLine.endsWith(".") || textLine.endsWith(",") || textLine.endsWith(":") || textLine.endsWith(";");
+    }
+
+    public static String replaceLastCharacter(String textLine, String newCharacter) {
+        return textLine.substring(0, textLine.length() - 1) + newCharacter;
+    }
+
+    public static boolean isRussianLetter(char letter) {
+        return isUppercaseLetter(letter) || isLowercaseLetter(letter);
+    }
+
+    public static boolean isUppercaseLetter(char letter) {
+        return letter >= 'А' && letter <= 'Я';
+    }
+
+    public static boolean isLowercaseLetter(char letter) {
+        return letter >= 'а' && letter <= 'я';
+    }
 
     private static String formatNumbers(String textLine, String nextTextLine) {
         //Форматирование нумерации

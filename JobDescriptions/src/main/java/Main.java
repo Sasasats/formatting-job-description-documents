@@ -22,8 +22,6 @@ public class Main {
         List<File> originalFiles = FileUtils.getFilesFromFolder(Folders.FOLDER_FOR_ORIGINAL_FILES.getValue());
 
         for (File file : originalFiles) {
-            System.out.println(file.getName());
-
             //Названия файлов с относительным путем для доступа к ним
             String ORIGINAL_DOCX_FILE = Folders.FOLDER_FOR_ORIGINAL_FILES.getValue() + file.getName();
             String FORMATTED_DOCX_FILE = Folders.FOLDER_FOR_FORMATTED_FILES.getValue() + file.getName();
