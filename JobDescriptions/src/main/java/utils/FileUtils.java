@@ -6,24 +6,31 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FileUtils {
-    public static List<File> getFilesFromFolder(String pathFolder) {
-        List<File> tempFiles = null;
-        try {
-            tempFiles = Files.walk(Paths.get(pathFolder))
-                    .filter(Files::isRegularFile)
-                    .map(Path::toFile)
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
+    /**
+     * Получает все файлы из папки.
+     *
+     * @param folder Папка в которой нужно найти файлы.
+     * @return Список файлов.
+     */
+    public static List<File> getFilesFromFolder(File folder) {
+        if (folder.listFiles() != null) {
+            return new ArrayList<File>(Arrays.asList(folder.listFiles()));
+        } else {
+            return null;
         }
-        return tempFiles;
     }
 
+    /**
+     * Копирует файл.
+     *
+     * @param originalFileName Файл который необходимо скопировать.
+     * @param copiedFileName   Файл копия.
+     */
     public static void copyFile(String originalFileName, String copiedFileName) {
         try {
             Files.copy(Path.of(originalFileName), Path.of(copiedFileName));
@@ -32,7 +39,13 @@ public class FileUtils {
         }
     }
 
-    public static void convertFile(String originalFileName, String convertedFileName){
+    /**
+     * Конвертирует файл.
+     *
+     * @param originalFileName  Файл который необходимо конвертировать.
+     * @param convertedFileName Конвертированный файл.
+     */
+    public static void convertFile(String originalFileName, String convertedFileName) {
         try {
             new Document(originalFileName).save(convertedFileName);
         } catch (Exception e) {
@@ -40,6 +53,11 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Удаляет файл.
+     *
+     * @param fileName Файл который необходимо удалить.
+     */
     public static void deleteFile(String fileName) {
         new File(fileName).delete();
     }

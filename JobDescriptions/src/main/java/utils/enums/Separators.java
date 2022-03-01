@@ -3,9 +3,13 @@ package utils.enums;
 import lombok.Getter;
 
 public enum Separators {
-    SPACE(" "),
     DOT("."),
-    DOT_AND_SPACE(". ");
+    COMMA(","),
+    COLON(":"),
+    SEMICOLON(";"),
+
+    SPACE(" "),
+    NOTHING("");
 
     @Getter
     private final String value;
